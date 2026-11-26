@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# dig wrapper: if no @server is given, try primary DNS then backup DNS
+for a in "$@"; do case "$a" in @*) exec /usr/bin/dig "$@";; esac; done
+out=$(/usr/bin/dig @127.0.0.11 +time=1 +tries=1 "$@" 2>&1)
+if echo "$out" | grep -qE 'timed out|no servers could be reached|connection refused'; then
+  exec /usr/bin/dig @127.0.0.14 +time=1 +tries=1 "$@"
+fi
+printf '%s\n' "$out"
